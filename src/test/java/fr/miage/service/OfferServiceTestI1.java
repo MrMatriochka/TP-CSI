@@ -1,13 +1,15 @@
 package fr.miage.service;
 
+import fr.miage.app.Errors;
 import fr.miage.domain.Degree;
 import fr.miage.domain.DegreeType;
 import fr.miage.render.TextTreeRenderer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-class OfferServiceTest {
+public class OfferServiceTestI1 {
 
     private OfferService offerService;
 
@@ -20,32 +22,45 @@ class OfferServiceTest {
     void createDegree_ok() {
         var result = offerService.createDegree("MIAGE", "Master", 2, 100, 120);
         assertTrue(result.ok());
+        assertEquals("OK: Degree created", result.message());
     }
 
     @Test
     void createDegree_wrongTypeDuration_err() {
         var result = offerService.createDegree("MIAGE", "Master", 3, 100, 180);
         assertFalse(result.ok());
+        assertEquals(Errors.INVALID_TYPE_DURATION, result.message()); // à ajouter dans Errors si pas déjà
     }
 
     @Test
     void createDegree_reservedKeyword_create() {
         var result = offerService.createDegree("CREATE", "Master", 2, 100, 120);
         assertFalse(result.ok());
+        assertEquals(Errors.INVALID_NAME, result.message());
     }
 
     @Test
     void createDegree_reservedKeyword_get() {
         var result = offerService.createDegree("GET", "Master", 2, 100, 120);
         assertFalse(result.ok());
+        assertEquals(Errors.INVALID_NAME, result.message());
     }
 
     @Test
     void selectDegree_setsCurrentDegree() {
         offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+
         var result = offerService.selectDegree("MIAGE");
         assertTrue(result.ok());
+        assertEquals("OK: Degree selected", result.message());
         assertNotNull(offerService.getCurrentDegree());
+    }
+
+    @Test
+    void selectDegree_notFound_err() {
+        var result = offerService.selectDegree("UNKNOWN");
+        assertFalse(result.ok());
+        assertEquals(Errors.DEGREE_NOT_FOUND, result.message());
     }
 
     @Test
@@ -60,14 +75,27 @@ class OfferServiceTest {
     void selectYear_requiresDegree() {
         var result = offerService.selectYear(1);
         assertFalse(result.ok());
+        assertEquals(Errors.NO_DEGREE_SELECTED, result.message());
+    }
+
+    @Test
+    void selectYear_invalidYear_err() {
+        offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+        offerService.selectDegree("MIAGE");
+
+        var result = offerService.selectYear(99);
+        assertFalse(result.ok());
+        assertEquals(Errors.INVALID_YEAR, result.message());
     }
 
     @Test
     void selectYear_ok() {
         offerService.createDegree("MIAGE", "Master", 2, 100, 120);
         offerService.selectDegree("MIAGE");
+
         var result = offerService.selectYear(2);
         assertTrue(result.ok());
+        assertEquals("OK: Year selected", result.message());
         assertEquals(2, offerService.getCurrentYear().getIndex());
     }
 
@@ -75,6 +103,7 @@ class OfferServiceTest {
     void createUE_requiresContext() {
         var result = offerService.createUE("Algo", 10, 10, 10, 10);
         assertFalse(result.ok());
+        assertEquals(Errors.NO_DEGREE_SELECTED, result.message());
     }
 
     @Test
@@ -84,6 +113,7 @@ class OfferServiceTest {
 
         var result = offerService.createUE("Algo", 15, 10, 10, 10);
         assertTrue(result.ok());
+        assertEquals("OK: UE created", result.message());
     }
 
     @Test
@@ -93,6 +123,7 @@ class OfferServiceTest {
 
         var result = offerService.createUE("Algo", 15, 20, 10, 5); // 35h
         assertFalse(result.ok());
+        assertEquals(Errors.UE_HOURS_GT_30, result.message());
     }
 
     @Test
@@ -105,6 +136,7 @@ class OfferServiceTest {
 
         var result = offerService.createUE("UE3", 1, 1, 0, 0); // 61
         assertFalse(result.ok());
+        assertEquals(Errors.ECTS_GT_60, result.message());
     }
 
     @Test
@@ -118,6 +150,7 @@ class OfferServiceTest {
 
         var result = offerService.createUE("UE7", 1, 1, 0, 0);
         assertFalse(result.ok());
+        assertEquals(Errors.MAX_6_UE, result.message());
     }
 
     @Test
@@ -130,7 +163,5 @@ class OfferServiceTest {
         assertTrue(s.contains("DEGREE MIAGE"));
         assertTrue(s.contains("YEAR 1"));
         assertTrue(s.contains("YEAR 2"));
-        System.out.println(s.toString());
     }
-
 }

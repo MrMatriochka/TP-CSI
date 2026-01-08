@@ -1,5 +1,9 @@
 package fr.miage;
 
+import fr.miage.app.CommandExecutor;
+import fr.miage.app.Result;
+import fr.miage.service.OfferService;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -7,39 +11,61 @@ import java.io.InputStreamReader;
 import java.util.Scanner;
 
 public class Main {
+
     public static void main(String[] args) throws IOException {
+        OfferService offerService = new OfferService();
+        CommandExecutor executor = new CommandExecutor(offerService);
 
-        System.out.println("Offre de formation - CLI (type EXIT to quit)");
-
-        BufferedReader reader;
-        boolean echoPrompt = true;
-
-        //verification d'un document texte argument
-        if (args.length == 1) {
-            reader = new BufferedReader(new FileReader(args[0]));
-            echoPrompt = false;
+        // Mode fichier si args[0] est fourni, sinon mode interactif
+        if (args.length >= 1) {
+            runFile(args[0], executor);
+        } else {
+            runInteractive(executor);
         }
-        else {
-            reader = new BufferedReader(new InputStreamReader(System.in)); //si pas de texte passe en mode input
-        }
+    }
 
-        String line;
+    private static void runInteractive(CommandExecutor executor) throws IOException {
+        System.out.println("OK: Formation Manager started. Type EXIT to quit.");
 
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
             while (true) {
-                if (echoPrompt) System.out.print("> ");
+                System.out.print("> ");
+                String line = br.readLine();
+                if (line == null) break; // EOF (Ctrl+D)
+                if (line.isBlank()) continue;
 
-                line = reader.readLine();
-                if (line == null) break; // EOF
-                line = line.trim();
-                if (line.isEmpty()) continue;
-
-                if (line.equalsIgnoreCase("EXIT")) {
-                    System.out.println("Bye.");
+                // EXIT : on quitte proprement
+                if (line.trim().equalsIgnoreCase("EXIT")) {
+                    System.out.println("OK: Bye.");
                     break;
                 }
 
-                System.out.println("ERR: Unknown command");
+                Result result = executor.executeLine(line);
+                System.out.println(result.message());
             }
+        }
+    }
 
+    private static void runFile(String path, CommandExecutor executor) throws IOException {
+        System.out.println("OK: Running commands from file: " + path);
+
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String trimmed = line.trim();
+                if (trimmed.isEmpty()) continue;
+
+                // On affiche la commande pour le debug / traçabilité
+                System.out.println("> " + trimmed);
+
+                if (trimmed.equalsIgnoreCase("EXIT")) {
+                    System.out.println("OK: Bye.");
+                    break;
+                }
+
+                Result result = executor.executeLine(trimmed);
+                System.out.println(result.message());
+            }
+        }
     }
 }
