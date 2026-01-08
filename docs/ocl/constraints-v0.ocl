@@ -1,0 +1,190 @@
+-- =========================
+-- Formation Manager - Contraintes OCL
+-- =========================
+
+-- =========================
+-- Helpers (définitions)
+-- =========================
+
+-- Total d'heures d'une UE
+context UE
+def: totalHours : Integer = self.cmHours + self.tdHours + self.tpHours
+
+-- Nombre de séances de 2h nécessaires (arrondi au supérieur)
+context UE
+def: sessions : Integer =
+  if self.totalHours.mod(2) = 0 then self.totalHours.div(2)
+  else self.totalHours.div(2) + 1
+  endif
+
+-- Heures assignées à une UE
+context UE
+def: assignedHours : Integer = self.assignments.hours->sum()
+
+-- Taux de couverture d'une UE (en pourcentage, entier)
+context UE
+def: coveragePercentage : Integer =
+  if self.totalHours = 0 then 0
+  else (self.assignedHours * 100).div(self.totalHours)
+  endif
+
+-- Total d'heures d'un enseignant (heures assignées)
+context Teacher
+def: totalAssignedHours : Integer = self.assignments.hours->sum()
+
+-- =========================
+-- Mots-clés réservés (global)
+-- =========================
+
+context OclAny
+def: keywords : Set(String) =
+  Set{'ALL','GET','ASSIGN','GRAPH','COVER','SELECT','CREATE','TEACHER','DEGREE','TOTAL','DISPLAY','TRACE','EDIT','UE','EXIT','YEAR'}
+
+-- =========================
+-- Contraintes de nommage
+-- =========================
+
+context Degree
+inv NameNotEmpty:
+  self.name.size() >= 1
+
+context UE
+inv NameNotEmpty:
+  self.name.size() >= 1
+
+context Teacher
+inv NameNotEmpty:
+  self.lastName.size() >= 1 and self.firstName.size() >= 1
+
+-- =========================
+-- Unicité des identifiants
+-- =========================
+
+context Degree
+inv UniqueDegreeName:
+  Degree.allInstances()->isUnique(d | d.name)
+
+context UE
+inv UniqueUEName:
+  UE.allInstances()->isUnique(u | u.name)
+
+-- (choix v0 : unicité sur lastName comme dans ton texte ; possible de renforcer en lastName+firstName si vous voulez)
+context Teacher
+inv UniqueTeacherLastName:
+  Teacher.allInstances()->isUnique(t | t.lastName)
+
+-- =========================
+-- Interdiction des mots-clés réservés
+-- =========================
+
+context Degree
+inv DegreeNameNotReserved:
+  not OclAny.allInstances()->any(true).keywords->includes(self.name.toUpper())
+
+context UE
+inv UENameNotReserved:
+  not OclAny.allInstances()->any(true).keywords->includes(self.name.toUpper())
+
+context Teacher
+inv TeacherNameNotReserved:
+  not OclAny.allInstances()->any(true).keywords->includes(self.lastName.toUpper())
+
+-- =========================
+-- Contraintes sur UE
+-- =========================
+
+context UE
+inv MaxUEHours:
+  self.totalHours <= 30
+
+context UE
+inv PositiveHours:
+  self.cmHours >= 0 and self.tdHours >= 0 and self.tpHours >= 0
+
+context UE
+inv PositiveEcts:
+  self.ects > 0
+
+context UE
+inv TotalAssignedNotAbovePlanned:
+  self.assignedHours <= self.totalHours
+
+-- =========================
+-- Contraintes sur Year
+-- =========================
+
+context Year
+inv Max6UEPerYear:
+  self.contains->size() <= 6
+
+context Year
+inv EctsPerYearIs60:
+  self.contains.ects->sum() = 60
+
+context Year
+inv PositiveYearIndex:
+  self.index > 0
+
+-- =========================
+-- Contraintes sur Degree
+-- =========================
+
+context Degree
+inv PositiveMaxStudents:
+  self.maxStudents > 0
+
+context Degree
+inv PositiveTotalEcts:
+  self.ectsTotal > 0
+
+context Degree
+inv DurationMatchesType:
+  (self.type = DegreeType::BUT implies self.years->size() = 3) and
+  (self.type = DegreeType::Licence implies self.years->size() = 3) and
+  (self.type = DegreeType::Master implies self.years->size() = 2) and
+  (self.type = DegreeType::LicencePro implies self.years->size() = 1)
+
+context Degree
+inv TotalEctsMatchesDuration:
+  self.ectsTotal = self.years->size() * 60
+
+context Degree
+inv YearIndexUnique:
+  self.years->isUnique(y | y.index)
+
+context Degree
+inv YearIndexInRange:
+  self.years->forAll(y | y.index >= 1 and y.index <= self.years->size())
+
+-- =========================
+-- Contraintes sur Teacher / Assignment
+-- =========================
+
+context Teacher
+inv MaxTeacherHours:
+  self.totalAssignedHours <= 90
+
+context Assignment
+inv PositiveAssignmentHours:
+  self.hours > 0
+
+-- Cohérence des liens (si votre UML a bien Assignment -> UE et Assignment -> Teacher)
+context UE
+inv AssignmentConsistencyUE:
+  self.assignments->forAll(a | a.ue = self)
+
+context Teacher
+inv AssignmentConsistencyTeacher:
+  self.assignments->forAll(a | a.teacher = self)
+
+-- =========================
+-- Contraintes globales optionnelles
+-- =========================
+
+context Degree
+inv AtLeastOneYear:
+  self.years->notEmpty()
+
+context Year
+inv BelongsToDegree:
+  Degree.allInstances()->exists(d | d.years->includes(self))

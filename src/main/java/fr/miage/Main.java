@@ -1,17 +1,45 @@
 package fr.miage;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Scanner;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+public class Main {
+    public static void main(String[] args) throws IOException {
+
+        System.out.println("Offre de formation - CLI (type EXIT to quit)");
+
+        BufferedReader reader;
+        boolean echoPrompt = true;
+
+        //verification d'un document texte argument
+        if (args.length == 1) {
+            reader = new BufferedReader(new FileReader(args[0]));
+            echoPrompt = false;
         }
+        else {
+            reader = new BufferedReader(new InputStreamReader(System.in)); //si pas de texte passe en mode input
+        }
+
+        String line;
+
+            while (true) {
+                if (echoPrompt) System.out.print("> ");
+
+                line = reader.readLine();
+                if (line == null) break; // EOF
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                if (line.equalsIgnoreCase("EXIT")) {
+                    System.out.println("Bye.");
+                    break;
+                }
+
+                System.out.println("ERR: Unknown command");
+            }
+
     }
 }
