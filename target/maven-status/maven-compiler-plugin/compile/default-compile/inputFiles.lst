@@ -1,0 +1,11 @@
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/Main.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/app/CommandExecutor.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/app/Errors.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/app/NameValidator.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/app/Result.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/domain/Degree.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/domain/DegreeType.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/domain/UE.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/domain/Year.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/render/TextTreeRenderer.java
+/Users/bacteriologie/Documents/GitHub/TP-CSI/src/main/java/fr/miage/service/OfferService.java
