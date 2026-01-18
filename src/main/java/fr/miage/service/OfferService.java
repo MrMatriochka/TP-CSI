@@ -10,6 +10,7 @@ import java.util.Map;
 public class OfferService {
 
     private final Map<String, Degree> degreesByName = new HashMap<>();
+    private final Map<String, Teacher> teachersByLastName = new HashMap<>();
     private final Map<String, UE> uesByName = new HashMap<>();
 
     private Degree currentDegree;
@@ -88,6 +89,17 @@ public class OfferService {
         currentYear.getUes().add(ue);
 
         return Result.ok("UE created");
+    }
+
+    public Result createTeacher(String lastName, String firstName) {
+        if (!NameValidator.isValidName(lastName)) return Result.err(Errors.INVALID_NAME);
+        if (firstName == null || firstName.isBlank()) return Result.err(Errors.INVALID_NAME);
+
+        if (teachersByLastName.containsKey(lastName)) return Result.err(Errors.TEACHER_ALREADY_EXISTS); // à ajouter dans Errors
+
+        Teacher t = new Teacher(lastName, firstName);
+        teachersByLastName.put(lastName, t);
+        return Result.ok("Teacher created");
     }
 
     public Result displayGraph(String degreeName) {

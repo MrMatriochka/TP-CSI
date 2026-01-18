@@ -53,6 +53,12 @@ public class CommandExecutor {
                 int tp = Integer.parseInt(t[6]);
                 yield offerService.createUE(name, ects, cm, td, tp);
             }
+            case "TEACHER" -> {
+                if (t.length != 4) yield Result.err(Errors.INVALID_ARGUMENTS);
+                String lastName = t[2];
+                String firstName = t[3];
+                yield offerService.createTeacher(lastName, firstName);
+            }
             default -> Result.err(Errors.INVALID_ARGUMENTS);
         };
     }

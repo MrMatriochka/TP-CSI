@@ -25,4 +25,6 @@ public final class Errors {
     public static final String ECT_OVER_0 = "ERR: ectsTotal must be > 0";
     public static final String ECT_60_PER_YEAR = "ERR: ectsTotal must equal years*60";
     public static final String HOURS_OVER_0 = "ERR: hours must be >= 0";
+    public static final String TEACHER_ALREADY_EXISTS = "ERR: Teacher already exists";
+
 }
