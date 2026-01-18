@@ -29,7 +29,7 @@ public class OfferServiceTestI1 {
     void createDegree_wrongTypeDuration_err() {
         var result = offerService.createDegree("MIAGE", "Master", 3, 100, 180);
         assertFalse(result.ok());
-        assertEquals(Errors.INVALID_TYPE_DURATION, result.message()); // à ajouter dans Errors si pas déjà
+        assertEquals(Errors.INVALID_TYPE_DURATION, result.message());
     }
 
     @Test

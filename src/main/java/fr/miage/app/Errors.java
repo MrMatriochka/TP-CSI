@@ -26,5 +26,11 @@ public final class Errors {
     public static final String ECT_60_PER_YEAR = "ERR: ectsTotal must equal years*60";
     public static final String HOURS_OVER_0 = "ERR: hours must be >= 0";
     public static final String TEACHER_ALREADY_EXISTS = "ERR: Teacher already exists";
+    public static final String TEACHER_NOT_FOUND = "ERR: Teacher not found";
+    public static final String UE_NOT_FOUND = "ERR: UE not found";
+    public static final String MAX_TEACHER_HOURS_90 = "ERR: Teacher hours > 90";
+    public static final String UE_OVER_ASSIGNED = "ERR: Assigned hours > UE total";
+    public static final String ASSIGNMENT_ALREADY_EXISTS = "ERR: Assignment already exists";
+    public static final String AMBIGUOUS_NAME = "ERR: Ambiguous name";
 
 }

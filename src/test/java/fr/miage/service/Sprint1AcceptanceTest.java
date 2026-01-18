@@ -22,7 +22,7 @@ class Sprint1AcceptanceTest {
             String trimmed = line.trim();
             if (trimmed.isEmpty()) continue;
 
-            // EXIT est géré dans Main en prod, mais pour un test d'acceptation on le simule.
+
             if (trimmed.equalsIgnoreCase("EXIT")) {
                 outputs.add("OK: Bye.");
                 break;
@@ -50,7 +50,7 @@ class Sprint1AcceptanceTest {
         assertEquals("OK: Year selected", out.get(2));
         assertEquals("OK: UE created", out.get(3));
 
-        // DISPLAY GRAPH : on ne fige pas tout le format, juste les éléments essentiels
+
         assertTrue(out.get(4).startsWith("OK:"), "DISPLAY should return OK");
         assertTrue(out.get(4).contains("DEGREE MIAGE"), "Graph should contain degree header");
         assertTrue(out.get(4).contains("YEAR 1"), "Graph should contain year 1");

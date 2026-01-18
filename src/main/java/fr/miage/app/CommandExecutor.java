@@ -21,6 +21,8 @@ public class CommandExecutor {
                 case "CREATE" -> handleCreate(command);
                 case "SELECT" -> handleSelect(command);
                 case "DISPLAY" -> handleDisplay(command);
+                case "ASSIGN" -> handleAssign(command);
+                case "GET" -> handleGet(command);
                 default -> Result.err(Errors.INVALID_COMMAND);
             };
         } catch (NumberFormatException e) {
@@ -84,5 +86,24 @@ public class CommandExecutor {
         if (t.length != 3) return Result.err(Errors.INVALID_ARGUMENTS);
         if (!t[1].equalsIgnoreCase("GRAPH")) return Result.err(Errors.INVALID_ARGUMENTS);
         return offerService.displayGraph(t[2]);
+    }
+
+    private Result handleAssign(String[] t) {
+        if (t.length != 4) return Result.err(Errors.INVALID_ARGUMENTS);
+        String ue = t[1];
+        String teacher = t[2];
+        int hours = Integer.parseInt(t[3]);
+        return offerService.assign(ue, teacher, hours);
+    }
+
+    private Result handleGet(String[] t) {
+        if (t.length != 3) return Result.err(Errors.INVALID_ARGUMENTS);
+        if (!t[1].equalsIgnoreCase("TOTAL")) return Result.err(Errors.INVALID_ARGUMENTS);
+
+        if (t[2].equalsIgnoreCase("ALL")) {
+            return offerService.getTotalAllDegrees();
+        }
+
+        return offerService.getTotal(t[2]);
     }
 }
