@@ -22,6 +22,7 @@ public class TextTreeRenderer {
                     sb.append("    UE ").append(ue.getName())
                             .append(" ects=").append(ue.getEcts())
                             .append(" hours=").append(ue.totalHours())
+                            .append(" sessions=").append(ue.sessions())
                             .append(" [CM=").append(ue.getCmHours())
                             .append(", TD=").append(ue.getTdHours())
                             .append(", TP=").append(ue.getTpHours())

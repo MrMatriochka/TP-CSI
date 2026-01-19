@@ -3,6 +3,7 @@ package fr.miage.service;
 import fr.miage.app.Errors;
 import fr.miage.domain.Degree;
 import fr.miage.domain.DegreeType;
+import fr.miage.domain.UE;
 import fr.miage.render.TextTreeRenderer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -156,6 +157,111 @@ public class OfferServiceTestI2 {
         assertTrue(result.message().contains("INFO = 60"));
         assertTrue(result.message().contains("MIAGE = 50"));
     }
+
+    @Test
+    void getCover_ue_ok() {
+        offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+        offerService.selectDegree("MIAGE");
+        offerService.createUE("Algo", 15, 10, 10, 10); // planned 30
+
+        offerService.createTeacher("Dupont", "Jean");
+        offerService.assign("Algo", "Dupont", 15); // assigned 15 -> 50%
+
+        var result = offerService.getCover("Algo");
+        assertTrue(result.ok());
+        assertEquals("OK: Algo cover = 50%", result.message());
+    }
+
+    @Test
+    void getCover_degree_ok_weighted() {
+        offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+        offerService.selectDegree("MIAGE");
+
+        offerService.createUE("Algo", 15, 10, 10, 10); // 30h
+        offerService.createUE("Bd", 15, 10, 10, 0);    // 20h (Year1) total planned=50
+
+        offerService.createTeacher("Dupont", "Jean");
+        offerService.assign("Algo", "Dupont", 15); // assigned=15
+        offerService.assign("Bd", "Dupont", 5);    // assigned=20 -> 20/50=40%
+
+        var result = offerService.getCover("MIAGE");
+        assertTrue(result.ok());
+        assertEquals("OK: MIAGE cover = 40%", result.message());
+    }
+
+    @Test
+    void getCoverAllDegrees_ok() {
+        offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+        offerService.selectDegree("MIAGE");
+        offerService.createUE("Algo", 15, 10, 10, 10); // 30h
+
+        offerService.createTeacher("Dupont", "Jean");
+        offerService.assign("Algo", "Dupont", 15); // 50%
+
+        offerService.createDegree("INFO", "Master", 2, 100, 120);
+        offerService.selectDegree("INFO");
+        offerService.createUE("Sys", 15, 10, 10, 10); // 30h
+        // no assignment => 0%
+
+        var result = offerService.getCoverAllDegrees();
+        assertTrue(result.ok());
+        assertTrue(result.message().contains("INFO = 0%"));
+        assertTrue(result.message().contains("MIAGE = 50%"));
+    }
+
+    @Test
+    void ue_sessions_roundUp() {
+        var ue = new UE("Algo", 15, 10, 10, 5); // 25h
+        assertEquals(13, ue.sessions());
+    }
+
+    @Test
+    void editUE_ok() {
+        offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+        offerService.selectDegree("MIAGE");
+        offerService.createUE("Algo", 15, 10, 10, 10); // 30h, 15 ects
+
+        var result = offerService.editUE("Algo", 12, 8, 8, 8); // 24h
+        assertTrue(result.ok());
+        assertEquals("OK: UE updated", result.message());
+    }
+
+    @Test
+    void editUE_rejectsOver30Hours() {
+        offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+        offerService.selectDegree("MIAGE");
+        offerService.createUE("Algo", 15, 10, 10, 10);
+
+        var result = offerService.editUE("Algo", 12, 20, 10, 5); // 35h
+        assertFalse(result.ok());
+        assertEquals(Errors.UE_HOURS_GT_30, result.message());
+    }
+
+    @Test
+    void editUE_rejectsEctsOver60InYear() {
+        offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+        offerService.selectDegree("MIAGE");
+        offerService.createUE("UE1", 40, 10, 10, 10);
+        offerService.createUE("UE2", 20, 10, 10, 10); // year total = 60
+
+        var result = offerService.editUE("UE2", 30, 10, 10, 10); // would become 70
+        assertFalse(result.ok());
+        assertEquals(Errors.ECTS_GT_60, result.message());
+    }
+
+    @Test
+    void editUE_rejectsAssignedHoursGreaterThanNewTotal() {
+        offerService.createDegree("MIAGE", "Master", 2, 100, 120);
+        offerService.selectDegree("MIAGE");
+        offerService.createUE("Algo", 15, 10, 10, 10); // 30h
+        offerService.createTeacher("Dupont", "Jean");
+        offerService.assign("Algo", "Dupont", 20);
+
+        var result = offerService.editUE("Algo", 15, 5, 5, 5); // new total 15 < assigned 20
+        assertFalse(result.ok());
+        assertEquals(Errors.EDIT_BREAKS_ASSIGNMENTS, result.message());
+    }
+
 
 
 

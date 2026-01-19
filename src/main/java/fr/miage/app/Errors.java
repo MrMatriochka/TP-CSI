@@ -32,5 +32,9 @@ public final class Errors {
     public static final String UE_OVER_ASSIGNED = "ERR: Assigned hours > UE total";
     public static final String ASSIGNMENT_ALREADY_EXISTS = "ERR: Assignment already exists";
     public static final String AMBIGUOUS_NAME = "ERR: Ambiguous name";
+    public static final String UE_NOT_IN_ANY_YEAR = "ERR: UE not linked to any year";
+    public static final String EDIT_BREAKS_ASSIGNMENTS = "ERR: Assigned hours > new UE total";
+    public static final String ECTS_OVER_0 = "ERR: ects must be > 0";
+
 
 }

@@ -23,6 +23,7 @@ public class CommandExecutor {
                 case "DISPLAY" -> handleDisplay(command);
                 case "ASSIGN" -> handleAssign(command);
                 case "GET" -> handleGet(command);
+                case "EDIT" -> handleEdit(command);
                 default -> Result.err(Errors.INVALID_COMMAND);
             };
         } catch (NumberFormatException e) {
@@ -98,12 +99,35 @@ public class CommandExecutor {
 
     private Result handleGet(String[] t) {
         if (t.length != 3) return Result.err(Errors.INVALID_ARGUMENTS);
-        if (!t[1].equalsIgnoreCase("TOTAL")) return Result.err(Errors.INVALID_ARGUMENTS);
 
-        if (t[2].equalsIgnoreCase("ALL")) {
-            return offerService.getTotalAllDegrees();
+        String what = t[1].toUpperCase();
+
+        if ("TOTAL".equals(what)) {
+            if ("ALL".equalsIgnoreCase(t[2])) return offerService.getTotalAllDegrees();
+            return offerService.getTotal(t[2]);
         }
 
-        return offerService.getTotal(t[2]);
+        if ("COVER".equals(what)) {
+            if ("ALL".equalsIgnoreCase(t[2])) return offerService.getCoverAllDegrees();
+            return offerService.getCover(t[2]);
+        }
+
+        return Result.err(Errors.INVALID_ARGUMENTS);
+
     }
+
+    private Result handleEdit(String[] t) {
+        // EDIT UE <name> <ects> <cm> <td> <tp>
+        if (t.length != 7) return Result.err(Errors.INVALID_ARGUMENTS);
+        if (!t[1].equalsIgnoreCase("UE")) return Result.err(Errors.INVALID_ARGUMENTS);
+
+        String name = t[2];
+        int ects = Integer.parseInt(t[3]);
+        int cm = Integer.parseInt(t[4]);
+        int td = Integer.parseInt(t[5]);
+        int tp = Integer.parseInt(t[6]);
+
+        return offerService.editUE(name, ects, cm, td, tp);
+    }
+
 }

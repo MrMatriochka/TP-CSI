@@ -206,6 +206,112 @@ public class OfferService {
         return Result.ok("\n" + output);
     }
 
+    private int coveragePercent(int assigned, int planned) {
+        if (planned <= 0) return 0;
+        return (assigned * 100) / planned; // division entière
+
+
+    }
+
+    public Result getCover(String name) {
+        boolean isUE = uesByName.containsKey(name);
+        boolean isDegree = degreesByName.containsKey(name);
+
+        if (!isUE && !isDegree) return Result.err(Errors.INVALID_NAME);
+        if (isUE && isDegree) return Result.err(Errors.AMBIGUOUS_NAME);
+
+        if (isUE) {
+            UE ue = uesByName.get(name);
+            int planned = ue.totalHours();
+            int assigned = assignedHoursForUE(name);
+            int pct = coveragePercent(assigned, planned);
+            return Result.ok(name + " cover = " + pct + "%");
+        }
+
+        Degree d = degreesByName.get(name);
+
+        int plannedTotal = d.getYears().stream()
+                .flatMap(y -> y.getUes().stream())
+                .mapToInt(UE::totalHours)
+                .sum();
+
+        int assignedTotal = d.getYears().stream()
+                .flatMap(y -> y.getUes().stream())
+                .mapToInt(ue -> assignedHoursForUE(ue.getName()))
+                .sum();
+
+        int pct = coveragePercent(assignedTotal, plannedTotal);
+        return Result.ok(name + " cover = " + pct + "%");
+    }
+
+    public Result getCoverAllDegrees() {
+        if (degreesByName.isEmpty()) return Result.ok("\n(no degrees)");
+
+        String output = degreesByName.values().stream()
+                .sorted(Comparator.comparing(Degree::getName))
+                .map(d -> {
+                    int planned = d.getYears().stream()
+                            .flatMap(y -> y.getUes().stream())
+                            .mapToInt(UE::totalHours)
+                            .sum();
+
+                    int assigned = d.getYears().stream()
+                            .flatMap(y -> y.getUes().stream())
+                            .mapToInt(ue -> assignedHoursForUE(ue.getName()))
+                            .sum();
+
+                    int pct = coveragePercent(assigned, planned);
+                    return d.getName() + " = " + pct + "%";
+                })
+                .collect(Collectors.joining("\n"));
+
+        return Result.ok("\n" + output);
+    }
+
+    private Year findYearContainingUE(String ueName) {
+        for (Degree d : degreesByName.values()) {
+            for (Year y : d.getYears()) {
+                for (UE ue : y.getUes()) {
+                    if (ue.getName().equals(ueName)) return y;
+                }
+            }
+        }
+        return null;
+    }
+
+    public Result editUE(String ueName, int newEcts, int newCm, int newTd, int newTp) {
+        UE existing = uesByName.get(ueName);
+        if (existing == null) return Result.err(Errors.UE_NOT_FOUND);
+
+        // validations
+        if (newEcts <= 0) return Result.err(Errors.ECTS_OVER_0); // à ajouter
+        if (newCm < 0 || newTd < 0 || newTp < 0) return Result.err(Errors.HOURS_OVER_0);
+
+        int newTotal = newCm + newTd + newTp;
+        if (newTotal > 30) return Result.err(Errors.UE_HOURS_GT_30);
+
+        // year constraint (60 ects)
+        Year y = findYearContainingUE(ueName);
+        if (y == null) return Result.err(Errors.UE_NOT_IN_ANY_YEAR); // à ajouter
+
+        int ectsSum = y.getUes().stream().mapToInt(UE::getEcts).sum();
+        int ectsNewSum = ectsSum - existing.getEcts() + newEcts;
+        if (ectsNewSum > 60) return Result.err(Errors.ECTS_GT_60);
+
+        // assignments must still fit
+        int assigned = assignedHoursForUE(ueName);
+        if (assigned > newTotal) return Result.err(Errors.EDIT_BREAKS_ASSIGNMENTS); // à ajouter
+
+        // apply update
+        existing.setEcts(newEcts);
+        existing.setCmHours(newCm);
+        existing.setTdHours(newTd);
+        existing.setTpHours(newTp);
+
+        return Result.ok("UE updated");
+    }
+
+
 
 
     public Degree getCurrentDegree() { return currentDegree; }
