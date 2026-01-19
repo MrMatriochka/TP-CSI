@@ -3,10 +3,13 @@ package fr.miage.service;
 import fr.miage.app.*;
 import fr.miage.domain.*;
 import fr.miage.render.*;
+import fr.miage.graph.*;
+
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import java.nio.file.Path;
 
 public class OfferService {
 
@@ -20,6 +23,16 @@ public class OfferService {
     private Year currentYear;
 
     private final TextTreeRenderer textTreeRenderer = new TextTreeRenderer();
+
+    private final IGraphvizRunner graphvizRunner;
+
+    public OfferService() {
+        this.graphvizRunner = new GraphvizRunnerImpl();
+    }
+
+    public OfferService(IGraphvizRunner runner) {
+        this.graphvizRunner = runner;
+    }
 
     public Result createDegree(String name, String typeStr, int yearCount, int maxStudents, int ectsTotal) {
         if (!NameValidator.isValidName(name)) return Result.err(Errors.INVALID_NAME);
@@ -311,9 +324,26 @@ public class OfferService {
         return Result.ok("UE updated");
     }
 
+    public Result traceGraph(String degreeName, Path outPng) {
+        Degree d = degreesByName.get(degreeName);
+        if (d == null) return Result.err(Errors.DEGREE_NOT_FOUND);
 
+        String dot = fr.miage.graph.DotExporter.toDot(d);
+        return graphvizRunner.renderPng(dot, outPng);
+    }
 
+    public void reset() {
+        degreesByName.clear();
+        teachersByLastName.clear();
+        uesByName.clear();
+        assignments.clear();
+        currentDegree = null;
+        currentYear = null;
+    }
 
     public Degree getCurrentDegree() { return currentDegree; }
     public Year getCurrentYear() { return currentYear; }
+    public Collection<Degree> getAllDegrees() { return degreesByName.values(); }
+    public Collection<Teacher> getAllTeachers() { return teachersByLastName.values(); }
+    public List<Assignment> getAllAssignments() { return assignments; }
 }

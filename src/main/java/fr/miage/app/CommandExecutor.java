@@ -1,6 +1,9 @@
 package fr.miage.app;
 
 import fr.miage.service.OfferService;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 
 public class CommandExecutor {
 
@@ -24,6 +27,7 @@ public class CommandExecutor {
                 case "ASSIGN" -> handleAssign(command);
                 case "GET" -> handleGet(command);
                 case "EDIT" -> handleEdit(command);
+                case "TRACE" -> handleTrace(command);
                 default -> Result.err(Errors.INVALID_COMMAND);
             };
         } catch (NumberFormatException e) {
@@ -129,5 +133,29 @@ public class CommandExecutor {
 
         return offerService.editUE(name, ects, cm, td, tp);
     }
+
+    private Result handleTrace(String[] t) {
+        if (t.length != 4) return Result.err(Errors.INVALID_ARGUMENTS);
+        if (!t[1].equalsIgnoreCase("GRAPH")) return Result.err(Errors.INVALID_ARGUMENTS);
+
+        String degreeName = t[2];
+        Path out = Paths.get(t[3]);
+
+        // ✅ on force .png
+        if (!out.toString().toLowerCase().endsWith(".png")) {
+            return Result.err(Errors.INVALID_ARGUMENTS);
+        }
+
+        // ✅ si c'est manifestement un dossier (se termine par / ou \)
+        String raw = t[3];
+        if (raw.endsWith("/") || raw.endsWith("\\")) {
+            return Result.err(Errors.CANNOT_WRITE_FILE);
+        }
+
+        return offerService.traceGraph(degreeName, out);
+    }
+
+
+
 
 }

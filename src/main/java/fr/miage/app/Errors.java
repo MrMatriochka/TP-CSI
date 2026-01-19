@@ -35,6 +35,10 @@ public final class Errors {
     public static final String UE_NOT_IN_ANY_YEAR = "ERR: UE not linked to any year";
     public static final String EDIT_BREAKS_ASSIGNMENTS = "ERR: Assigned hours > new UE total";
     public static final String ECTS_OVER_0 = "ERR: ects must be > 0";
+    public static final String GRAPHVIZ_NOT_INSTALLED = "ERR: Graphviz not installed";
+    public static final String GRAPHVIZ_FAILED = "ERR: Graphviz failed";
+    public static final String CANNOT_WRITE_FILE = "ERR: Cannot write file";
+
 
 
 }

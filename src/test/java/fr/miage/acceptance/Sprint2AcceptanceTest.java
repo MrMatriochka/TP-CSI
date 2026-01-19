@@ -1,4 +1,4 @@
-package fr.miage.service;
+package fr.miage.acceptance;
 
 import fr.miage.app.CommandExecutor;
 import fr.miage.app.Errors;
