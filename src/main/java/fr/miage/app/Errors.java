@@ -38,6 +38,8 @@ public final class Errors {
     public static final String GRAPHVIZ_NOT_INSTALLED = "ERR: Graphviz not installed";
     public static final String GRAPHVIZ_FAILED = "ERR: Graphviz failed";
     public static final String CANNOT_WRITE_FILE = "ERR: Cannot write file";
+    public static final String UE_DELETED = "ERR: UE deleted";
+
 
 
 

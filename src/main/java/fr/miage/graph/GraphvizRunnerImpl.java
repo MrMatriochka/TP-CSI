@@ -19,7 +19,7 @@ public class GraphvizRunnerImpl implements IGraphvizRunner {
         }
 
         try {
-            ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", "-o", outPng.toString());
+            ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", "-Gdpi=300", "-o", outPng.toString());
             Process p = pb.start();
 
             p.getOutputStream().write(dot.getBytes(StandardCharsets.UTF_8));

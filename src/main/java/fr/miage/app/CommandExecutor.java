@@ -94,11 +94,25 @@ public class CommandExecutor {
     }
 
     private Result handleAssign(String[] t) {
+        // ASSIGN UE <ue> <degree> <year>
+        if (t.length == 5 && t[1].equalsIgnoreCase("UE")) {
+            try {
+                String ueName = t[2];
+                String degreeName = t[3];
+                int year = Integer.parseInt(t[4]);
+                return offerService.assignUEToDegreeYear(ueName, degreeName, year);
+            } catch (NumberFormatException e) {
+                return Result.err(Errors.INVALID_NUMBER);
+            }
+        }
+
+        // ASSIGN <ue> <teacher> <hours> (ton existant)
         if (t.length != 4) return Result.err(Errors.INVALID_ARGUMENTS);
-        String ue = t[1];
-        String teacher = t[2];
-        int hours = Integer.parseInt(t[3]);
-        return offerService.assign(ue, teacher, hours);
+        try {
+            return offerService.assign(t[1], t[2], Integer.parseInt(t[3]));
+        } catch (NumberFormatException e) {
+            return Result.err(Errors.INVALID_NUMBER);
+        }
     }
 
     private Result handleGet(String[] t) {

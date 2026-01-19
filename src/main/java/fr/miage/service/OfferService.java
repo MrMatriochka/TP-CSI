@@ -132,7 +132,7 @@ public class OfferService {
                 .sum();
     }
 
-    private int assignedHoursForUE(String ueName) {
+    public int assignedHoursForUE(String ueName) {
         return assignments.stream()
                 .filter(a -> a.getUe().getName().equals(ueName))
                 .mapToInt(Assignment::getHours)
@@ -293,6 +293,10 @@ public class OfferService {
     }
 
     public Result editUE(String ueName, int newEcts, int newCm, int newTd, int newTp) {
+        if (newEcts == 0 && newCm == 0 && newTd == 0 && newTp == 0) {
+            return deleteUE(ueName);
+        }
+
         UE existing = uesByName.get(ueName);
         if (existing == null) return Result.err(Errors.UE_NOT_FOUND);
 
@@ -324,11 +328,56 @@ public class OfferService {
         return Result.ok("UE updated");
     }
 
+    public Result assignUEToDegreeYear(String ueName, String degreeName, int yearIndex) {
+        Degree d = degreesByName.get(degreeName);
+        if (d == null) return Result.err(Errors.DEGREE_NOT_FOUND);
+        if (yearIndex < 1 || yearIndex > d.getYears().size()) return Result.err(Errors.INVALID_YEAR);
+
+        UE ue = uesByName.get(ueName);
+        if (ue == null) return Result.err(Errors.UE_NOT_FOUND);
+
+        Year y = d.getYears().get(yearIndex - 1);
+
+        // pas 2 fois la même UE dans la même année
+        boolean alreadyInYear = y.getUes().stream().anyMatch(u -> u.getName().equals(ueName));
+        if (alreadyInYear) return Result.err(Errors.UE_ALREADY_EXISTS);
+
+        // contraintes année
+        if (y.getUes().size() >= 6) return Result.err(Errors.MAX_6_UE);
+
+        int ectsSum = y.getUes().stream().mapToInt(UE::getEcts).sum();
+        if (ectsSum + ue.getEcts() > 60) return Result.err(Errors.ECTS_GT_60);
+
+        y.getUes().add(ue);
+        return Result.ok("UE assigned");
+    }
+
+    private Result deleteUE(String ueName) {
+        UE existing = uesByName.get(ueName);
+        if (existing == null) return Result.err(Errors.UE_NOT_FOUND);
+
+        // retirer des années (tous diplômes)
+        for (Degree d : degreesByName.values()) {
+            for (Year y : d.getYears()) {
+                y.getUes().removeIf(u -> u.getName().equals(ueName));
+            }
+        }
+
+        // retirer les affectations
+        assignments.removeIf(a -> a.getUe().getName().equals(ueName));
+
+        // retirer de la map globale
+        uesByName.remove(ueName);
+
+        // si le contexte pointait sur une année ok, rien à faire
+        return Result.ok("UE deleted");
+    }
+
     public Result traceGraph(String degreeName, Path outPng) {
         Degree d = degreesByName.get(degreeName);
         if (d == null) return Result.err(Errors.DEGREE_NOT_FOUND);
 
-        String dot = fr.miage.graph.DotExporter.toDot(d);
+        String dot = fr.miage.graph.DotExporter.toDot(d, this);
         return graphvizRunner.renderPng(dot, outPng);
     }
 
@@ -346,4 +395,5 @@ public class OfferService {
     public Collection<Degree> getAllDegrees() { return degreesByName.values(); }
     public Collection<Teacher> getAllTeachers() { return teachersByLastName.values(); }
     public List<Assignment> getAllAssignments() { return assignments; }
+    public UE getUE(String name) { return uesByName.get(name); }
 }

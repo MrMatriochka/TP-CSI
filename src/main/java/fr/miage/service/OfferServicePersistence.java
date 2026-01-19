@@ -127,14 +127,16 @@ public final class OfferServicePersistence {
                     int td = Integer.parseInt(p[4]);
                     int tp = Integer.parseInt(p[5]);
 
-                    // Pour créer une UE, ton service exige un currentDegree/currentYear.
-                    // Ici on force le contexte courant au degré/année qu'on vient de lire.
                     if (currentDegreeInFile != null) {
                         service.selectDegree(currentDegreeInFile.getName());
-                        if (currentYearInFile != null) {
-                            service.selectYear(currentYearInFile.getIndex());
+                        if (currentYearInFile != null) service.selectYear(currentYearInFile.getIndex());
+
+                        if (service.getUE(ueName) == null) {     // <- ajoute un getter getUE
+                            service.createUE(ueName, ects, cm, td, tp);
+                        } else {
+                            // mutualisation : on rattache l’UE existante à cette année
+                            currentYearInFile.getUes().add(service.getUE(ueName));
                         }
-                        service.createUE(ueName, ects, cm, td, tp);
                     }
                 }
                 case "TEACHER" -> {
