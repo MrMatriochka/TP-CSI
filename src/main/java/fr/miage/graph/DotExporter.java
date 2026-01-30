@@ -14,11 +14,9 @@ public final class DotExporter {
         sb.append("  fontname=\"Helvetica\";\n");
         sb.append("  splines=true;\n");
 
-        // Style global
         sb.append("  node [shape=box, style=\"rounded,filled\", fontname=\"Helvetica\", fontsize=12, color=\"#333333\", penwidth=1.2];\n");
         sb.append("  edge [fontname=\"Helvetica\", color=\"#666666\", penwidth=1.2, arrowhead=vee, arrowsize=0.8];\n");
 
-        // Degree node (fontsize=18)
         String degNode = "DEG_" + safe(d.getName());
         sb.append("  ").append(degNode)
                 .append(" [fontsize=18, fillcolor=\"#DDEBFF\", label=\"DEGREE ")
@@ -26,7 +24,6 @@ public final class DotExporter {
                 .append(escape(d.getType().toString())).append("\"];\n");
 
         for (Year y : d.getYears()) {
-            // Year node (fontsize=14)
             String yearNode = "YEAR_" + safe(d.getName()) + "_" + y.getIndex();
             sb.append("  ").append(yearNode)
                     .append(" [fontsize=14, fillcolor=\"#F2F2F2\", label=\"YEAR ")
@@ -44,7 +41,6 @@ public final class DotExporter {
 
                 String fill = coverColor(cover);
 
-                // UE node : label HTML (titre 16, détails 10)
                 sb.append("  ").append(ueNode).append(" [fillcolor=\"").append(fill).append("\", label=<")
                         .append("<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLPADDING=\"3\">")
                         .append("<TR><TD><B><FONT POINT-SIZE=\"16\">UE ")
@@ -68,20 +64,20 @@ public final class DotExporter {
     }
 
     private static String coverColor(int cover) {
-        if (cover < 50) return "#FFB3B3";  // rouge clair
-        if (cover < 80) return "#FFE7A3";  // jaune clair
-        return "#B9F6C4";                  // vert clair
+        if (cover < 50) return "#FFB3B3";
+        if (cover < 80) return "#FFE7A3";
+        return "#B9F6C4";
     }
 
     private static String safe(String s) {
         return s.replaceAll("[^a-zA-Z0-9_]", "_");
     }
 
-    private static String escape(String s) { // pour labels "classiques"
+    private static String escape(String s) {
         return s.replace("\"", "\\\"");
     }
 
-    private static String html(String s) {   // pour labels HTML
+    private static String html(String s) {
         return s.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")

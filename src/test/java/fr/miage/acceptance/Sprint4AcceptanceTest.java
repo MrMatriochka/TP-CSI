@@ -18,23 +18,12 @@ class Sprint4AcceptanceTest {
         var service = new OfferService();
         var exec = new CommandExecutor(service);
 
-        // ------------------------------------------------------------
-        // SETUP : deux diplômes
-        // ------------------------------------------------------------
         assertTrue(exec.executeLine("CREATE DEGREE D1 Master 2 100 120").ok());
         assertTrue(exec.executeLine("CREATE DEGREE D2 Master 2 100 120").ok());
-
-        // ------------------------------------------------------------
-        // CREATE UE IA dans D1 / YEAR 1
-        // ------------------------------------------------------------
         assertTrue(exec.executeLine("SELECT DEGREE D1").ok());
         assertTrue(exec.executeLine("SELECT YEAR 1").ok());
         assertTrue(exec.executeLine("CREATE UE IA 15 10 10 10").ok());
 
-        // ------------------------------------------------------------
-        // TS-12 / T-400 : mutualisation
-        // ASSIGN UE <ue> <degree> <year>
-        // ------------------------------------------------------------
         var m1 = exec.executeLine("ASSIGN UE IA D2 1");
         assertTrue(m1.ok(), m1.message());
 
@@ -43,33 +32,25 @@ class Sprint4AcceptanceTest {
         assertTrue(g2.message().contains("DEGREE D2"));
         assertTrue(g2.message().contains("UE IA"));
 
-        // Doublon : même UE déjà dans la même année
         var dup = exec.executeLine("ASSIGN UE IA D2 1");
         assertFalse(dup.ok());
         assertEquals(Errors.UE_ALREADY_EXISTS, dup.message());
 
-        // Degree not found
         var badDegree = exec.executeLine("ASSIGN UE IA UNKNOWN 1");
         assertFalse(badDegree.ok());
         assertEquals(Errors.DEGREE_NOT_FOUND, badDegree.message());
 
-        // UE not found
         var badUe = exec.executeLine("ASSIGN UE UNKNOWN D2 1");
         assertFalse(badUe.ok());
         assertEquals(Errors.UE_NOT_FOUND, badUe.message());
 
-        // Invalid year
         var badYear = exec.executeLine("ASSIGN UE IA D2 99");
         assertFalse(badYear.ok());
         assertEquals(Errors.INVALID_YEAR, badYear.message());
 
-        // ------------------------------------------------------------
-        // TS-11 / T-401 : suppression UE via convention EDIT UE 0 0 0 0
-        // ------------------------------------------------------------
         var del = exec.executeLine("EDIT UE IA 0 0 0 0");
         assertTrue(del.ok(), del.message());
 
-        // UE ne doit plus apparaître nulle part
         var g1after = exec.executeLine("DISPLAY GRAPH D1");
         assertTrue(g1after.ok());
         assertFalse(g1after.message().contains("UE IA"), "UE IA should be removed from D1");
@@ -78,31 +59,23 @@ class Sprint4AcceptanceTest {
         assertTrue(g2after.ok());
         assertFalse(g2after.message().contains("UE IA"), "UE IA should be removed from D2");
 
-        // Toute action sur UE supprimée -> not found
         var assignAfterDelete = exec.executeLine("ASSIGN UE IA D2 1");
         assertFalse(assignAfterDelete.ok());
         assertEquals(Errors.UE_NOT_FOUND, assignAfterDelete.message());
 
-        // DELETE d'une UE inexistante -> UE_NOT_FOUND
         var delUnknown = exec.executeLine("EDIT UE UNKNOWN 0 0 0 0");
         assertFalse(delUnknown.ok());
         assertEquals(Errors.UE_NOT_FOUND, delUnknown.message());
 
-        // ------------------------------------------------------------
-        // Bonus cohérence : delete supprime aussi les assignments
-        // (si tu as déjà teacher/assign dans ton projet)
-        // ------------------------------------------------------------
         assertTrue(exec.executeLine("SELECT DEGREE D1").ok());
         assertTrue(exec.executeLine("SELECT YEAR 1").ok());
         assertTrue(exec.executeLine("CREATE UE Python 15 10 10 10").ok());
         assertTrue(exec.executeLine("CREATE TEACHER Dupont Jean").ok());
         assertTrue(exec.executeLine("ASSIGN Python Dupont 10").ok());
 
-        // On supprime Python via EDIT UE 0 0 0 0
         var del2 = exec.executeLine("EDIT UE Python 0 0 0 0");
         assertTrue(del2.ok(), del2.message());
 
-        // total teacher doit revenir à 0 si assignments supprimés (selon ton implémentation)
         var totalTeacher = exec.executeLine("GET TOTAL Dupont");
         assertTrue(totalTeacher.ok());
         assertTrue(totalTeacher.message().contains("Dupont total hours = 0"),
@@ -114,7 +87,6 @@ class Sprint4AcceptanceTest {
         Path dir = Files.createTempDirectory("save-load-mutual");
         Path save = dir.resolve("save.txt");
 
-        // Session 1
         var s1 = new OfferService();
         var e1 = new CommandExecutor(s1);
 
@@ -129,7 +101,6 @@ class Sprint4AcceptanceTest {
         assertTrue(Files.exists(save));
         assertTrue(Files.size(save) > 0);
 
-        // Session 2
         var s2 = new OfferService();
         OfferServicePersistence.loadInto(s2, save);
         var e2 = new CommandExecutor(s2);

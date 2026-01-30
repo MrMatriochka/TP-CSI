@@ -32,6 +32,6 @@ public class UE {
 
     public int sessions() {
         int h = totalHours();
-        return (h + 1) / 2; // ceil(h/2) en entier
+        return (h + 1) / 2;
     }
 }

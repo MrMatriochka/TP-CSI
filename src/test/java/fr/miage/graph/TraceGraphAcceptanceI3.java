@@ -20,7 +20,6 @@ public class TraceGraphAcceptanceI3 {
         public Result renderPng(String dot, Path outPng) {
             try {
                 if (outPng.getParent() != null) Files.createDirectories(outPng.getParent());
-                // écrit un fichier non vide (on ne cherche pas un vrai PNG ici)
                 Files.write(outPng, new byte[]{1, 2, 3});
                 return Result.ok("Graph traced to " + outPng);
             } catch (Exception e) {
@@ -37,14 +36,12 @@ public class TraceGraphAcceptanceI3 {
             if (trimmed.isEmpty()) continue;
 
             if (trimmed.equalsIgnoreCase("EXIT")) {
-                // save final
                 OfferServicePersistence.save(service, saveFile);
                 break;
             }
 
             var result = exec.executeLine(trimmed);
 
-            // autosave after OK
             if (result.ok()) {
                 OfferServicePersistence.save(service, saveFile);
             }
@@ -56,7 +53,6 @@ public class TraceGraphAcceptanceI3 {
         Path tmpDir = Files.createTempDirectory("autosave-es02");
         Path saveFile = tmpDir.resolve("save.txt");
 
-        // -------- Session 1 --------
         var s1 = new OfferService();
         runSessionWithAutosave(List.of(
                 "CREATE DEGREE D1 Master 2 100 120",
@@ -68,7 +64,6 @@ public class TraceGraphAcceptanceI3 {
         assertTrue(Files.exists(saveFile));
         assertTrue(Files.size(saveFile) > 0);
 
-        // -------- Session 2 --------
         var s2 = new OfferService();
         OfferServicePersistence.loadInto(s2, saveFile);
 

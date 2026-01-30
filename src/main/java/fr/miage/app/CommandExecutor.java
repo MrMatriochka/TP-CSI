@@ -94,7 +94,6 @@ public class CommandExecutor {
     }
 
     private Result handleAssign(String[] t) {
-        // ASSIGN UE <ue> <degree> <year>
         if (t.length == 5 && t[1].equalsIgnoreCase("UE")) {
             try {
                 String ueName = t[2];
@@ -106,7 +105,6 @@ public class CommandExecutor {
             }
         }
 
-        // ASSIGN <ue> <teacher> <hours> (ton existant)
         if (t.length != 4) return Result.err(Errors.INVALID_ARGUMENTS);
         try {
             return offerService.assign(t[1], t[2], Integer.parseInt(t[3]));
@@ -135,7 +133,6 @@ public class CommandExecutor {
     }
 
     private Result handleEdit(String[] t) {
-        // EDIT UE <name> <ects> <cm> <td> <tp>
         if (t.length != 7) return Result.err(Errors.INVALID_ARGUMENTS);
         if (!t[1].equalsIgnoreCase("UE")) return Result.err(Errors.INVALID_ARGUMENTS);
 
@@ -155,12 +152,10 @@ public class CommandExecutor {
         String degreeName = t[2];
         Path out = Paths.get(t[3]);
 
-        // ✅ on force .png
         if (!out.toString().toLowerCase().endsWith(".png")) {
             return Result.err(Errors.INVALID_ARGUMENTS);
         }
 
-        // ✅ si c'est manifestement un dossier (se termine par / ou \)
         String raw = t[3];
         if (raw.endsWith("/") || raw.endsWith("\\")) {
             return Result.err(Errors.CANNOT_WRITE_FILE);

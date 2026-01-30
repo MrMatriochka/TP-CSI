@@ -62,10 +62,10 @@ class Sprint1AcceptanceTest {
     @Test
     void sprint1_errors_are_homogeneous() {
         var out = runScript(List.of(
-                "BLAH",                       // commande inconnue
-                "SELECT YEAR 1",              // pas de degree sélectionné
-                "CREATE DEGREE X Master two 10 120", // 'two' => invalid number
-                "DISPLAY GRAPH UNKNOWN",      // degree not found
+                "BLAH",
+                "SELECT YEAR 1",
+                "CREATE DEGREE X Master two 10 120",
+                "DISPLAY GRAPH UNKNOWN",
                 "EXIT"
         ));
 
@@ -79,9 +79,9 @@ class Sprint1AcceptanceTest {
     @Test
     void sprint1_invalidArguments_examples() {
         var out = runScript(List.of(
-                "DISPLAY GRAPH",              // manque le degré
-                "CREATE UE Algo 15 10 10",    // manque un argument
-                "SELECT DEGREE",              // manque le nom
+                "DISPLAY GRAPH",
+                "CREATE UE Algo 15 10 10",
+                "SELECT DEGREE",
                 "EXIT"
         ));
 

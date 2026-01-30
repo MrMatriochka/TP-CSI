@@ -91,7 +91,7 @@ class OfferServiceTest {
         offerService.createDegree("MIAGE", "Master", 2, 100, 120);
         offerService.selectDegree("MIAGE");
 
-        var result = offerService.createUE("Algo", 15, 20, 10, 5); // 35h
+        var result = offerService.createUE("Algo", 15, 20, 10, 5);
         assertFalse(result.ok());
     }
 
@@ -103,7 +103,7 @@ class OfferServiceTest {
         assertTrue(offerService.createUE("UE1", 40, 10, 10, 10).ok());
         assertTrue(offerService.createUE("UE2", 20, 10, 10, 10).ok());
 
-        var result = offerService.createUE("UE3", 1, 1, 0, 0); // 61
+        var result = offerService.createUE("UE3", 1, 1, 0, 0);
         assertFalse(result.ok());
     }
 

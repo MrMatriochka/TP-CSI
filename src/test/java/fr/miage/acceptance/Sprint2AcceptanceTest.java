@@ -39,13 +39,13 @@ class Sprint2AcceptanceTest {
                 "CREATE DEGREE MIAGE Master 2 100 120",
                 "SELECT DEGREE MIAGE",
                 "SELECT YEAR 1",
-                "CREATE UE Algo 15 10 10 10",       // planned 30h
+                "CREATE UE Algo 15 10 10 10",
                 "CREATE TEACHER Dupont Jean",
-                "ASSIGN Algo Dupont 10",            // assigned 10h => cover 33%
+                "ASSIGN Algo Dupont 10",
                 "GET TOTAL Algo",
                 "GET TOTAL Dupont",
                 "GET COVER Algo",
-                "EDIT UE Algo 15 8 8 8",            // planned 24h, assigned 10 => cover 41%
+                "EDIT UE Algo 15 8 8 8",
                 "GET TOTAL Algo",
                 "GET COVER Algo",
                 "GET TOTAL MIAGE",
@@ -64,12 +64,12 @@ class Sprint2AcceptanceTest {
 
         assertEquals("OK: Algo total hours = 30", out.get(6));
         assertEquals("OK: Dupont total hours = 10", out.get(7));
-        assertEquals("OK: Algo cover = 33%", out.get(8)); // 10/30=33
+        assertEquals("OK: Algo cover = 33%", out.get(8));
 
         assertEquals("OK: UE updated", out.get(9));
 
         assertEquals("OK: Algo total hours = 24", out.get(10));
-        assertEquals("OK: Algo cover = 41%", out.get(11)); // 10/24=41
+        assertEquals("OK: Algo cover = 41%", out.get(11));
 
         assertEquals("OK: MIAGE total hours = 24", out.get(12));
         assertEquals("OK: MIAGE cover = 41%", out.get(13));
@@ -83,14 +83,14 @@ class Sprint2AcceptanceTest {
     @Test
     void sprint2_errors_are_homogeneous() {
         var out = runScript(List.of(
-                "GET COVER Unknown",              // name invalide
-                "ASSIGN Algo Dupont 10",          // UE not found (pas créée)
-                "EDIT UE Algo 15 20 10 5",         // UE not found
+                "GET COVER Unknown",
+                "ASSIGN Algo Dupont 10",
+                "EDIT UE Algo 15 20 10 5",
                 "CREATE DEGREE MIAGE Master 2 100 120",
                 "SELECT DEGREE MIAGE",
                 "CREATE UE Algo 15 10 10 10",
                 "CREATE TEACHER Dupont Jean",
-                "ASSIGN Algo Dupont 0",            // hours <=0
+                "ASSIGN Algo Dupont 0",
                 "EXIT"
         ));
 

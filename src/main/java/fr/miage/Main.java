@@ -26,7 +26,6 @@ public class Main {
             System.out.println("ERR: Cannot load save");
         }
 
-        // Mode fichier si args[0] est fourni, sinon mode interactif
         if (args.length >= 1) {
             runFile(args[0], executor, offerService, savePath);
         } else {
@@ -41,10 +40,9 @@ public class Main {
             while (true) {
                 System.out.print("> ");
                 String line = br.readLine();
-                if (line == null) break; // EOF (Ctrl+D)
+                if (line == null) break;
                 if (line.isBlank()) continue;
 
-                // EXIT : on quitte proprement
                 if (line.trim().equalsIgnoreCase("EXIT")) {
                     autosave(offerService, savePath);
                     System.out.println("OK: Bye.");
@@ -67,7 +65,6 @@ public class Main {
                 String trimmed = line.trim();
                 if (trimmed.isEmpty()) continue;
 
-                // On affiche la commande pour le debug / traçabilité
                 System.out.println("> " + trimmed);
 
                 if (trimmed.equalsIgnoreCase("EXIT")) {

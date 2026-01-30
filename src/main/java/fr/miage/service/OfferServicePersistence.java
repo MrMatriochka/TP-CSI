@@ -9,7 +9,7 @@ import java.util.*;
 public final class OfferServicePersistence {
     private OfferServicePersistence() {}
 
-    // Format lignes:
+    // Format de la save:
     // CURRENT|<degreeName>|<yearIndex>
     // DEGREE|name|type|maxStudents|ectsTotal|yearCount
     // YEAR|degreeName|yearIndex
@@ -21,13 +21,9 @@ public final class OfferServicePersistence {
         Files.createDirectories(path.getParent());
 
         List<String> lines = new ArrayList<>();
-
-        // CURRENT
         if (service.getCurrentDegree() != null && service.getCurrentYear() != null) {
             lines.add("CURRENT|" + service.getCurrentDegree().getName() + "|" + service.getCurrentYear().getIndex());
         }
-
-        // DEGREES + YEARS + UEs
         for (Degree d : service.getAllDegrees()) {
             lines.add(String.join("|",
                     "DEGREE",
@@ -53,12 +49,10 @@ public final class OfferServicePersistence {
             }
         }
 
-        // TEACHERS
         for (Teacher t : service.getAllTeachers()) {
             lines.add("TEACHER|" + t.getLastName() + "|" + t.getFirstName());
         }
 
-        // ASSIGNMENTS
         for (Assignment a : service.getAllAssignments()) {
             lines.add("ASSIGN|" + a.getUe().getName() + "|" + a.getTeacher().getLastName() + "|" + a.getHours());
         }
@@ -72,8 +66,6 @@ public final class OfferServicePersistence {
         List<String> lines = Files.readAllLines(path);
 
         service.reset();
-
-        // On reconstruit degrés/years/ues, puis teachers, puis assignments, puis current
         String pendingCurrentDegree = null;
         Integer pendingCurrentYear = null;
 
@@ -89,28 +81,24 @@ public final class OfferServicePersistence {
 
             switch (tag) {
                 case "CURRENT" -> {
-                    // CURRENT|MIAGE|1
                     if (p.length >= 3) {
                         pendingCurrentDegree = p[1];
                         pendingCurrentYear = Integer.parseInt(p[2]);
                     }
                 }
                 case "DEGREE" -> {
-                    // DEGREE|name|type|maxStudents|ectsTotal|yearCount
                     String name = p[1];
                     String typeStr = p[2];
                     int maxStudents = Integer.parseInt(p[3]);
                     int ectsTotal = Integer.parseInt(p[4]);
                     int yearCount = Integer.parseInt(p[5]);
 
-                    // utilise le service pour créer (ça recrée les years)
                     service.createDegree(name, typeStr, yearCount, maxStudents, ectsTotal);
 
                     currentDegreeInFile = service.getDegree(name);
                     currentYearInFile = null;
                 }
                 case "YEAR" -> {
-                    // YEAR|degreeName|yearIndex
                     String degreeName = p[1];
                     int idx = Integer.parseInt(p[2]);
 
@@ -120,7 +108,6 @@ public final class OfferServicePersistence {
                     }
                 }
                 case "UE" -> {
-                    // UE|name|ects|cm|td|tp
                     String ueName = p[1];
                     int ects = Integer.parseInt(p[2]);
                     int cm = Integer.parseInt(p[3]);
@@ -131,32 +118,27 @@ public final class OfferServicePersistence {
                         service.selectDegree(currentDegreeInFile.getName());
                         if (currentYearInFile != null) service.selectYear(currentYearInFile.getIndex());
 
-                        if (service.getUE(ueName) == null) {     // <- ajoute un getter getUE
+                        if (service.getUE(ueName) == null) {
                             service.createUE(ueName, ects, cm, td, tp);
                         } else {
-                            // mutualisation : on rattache l’UE existante à cette année
                             currentYearInFile.getUes().add(service.getUE(ueName));
                         }
                     }
                 }
                 case "TEACHER" -> {
-                    // TEACHER|last|first
                     service.createTeacher(p[1], p[2]);
                 }
                 case "ASSIGN" -> {
-                    // ASSIGN|ueName|teacherLastName|hours
                     String ueName = p[1];
                     String teacherLast = p[2];
                     int hours = Integer.parseInt(p[3]);
                     service.assign(ueName, teacherLast, hours);
                 }
                 default -> {
-                    // ignore lignes inconnues pour robustesse
                 }
             }
         }
 
-        // Restore current context at end
         if (pendingCurrentDegree != null) {
             service.selectDegree(pendingCurrentDegree);
             if (pendingCurrentYear != null) service.selectYear(pendingCurrentYear);

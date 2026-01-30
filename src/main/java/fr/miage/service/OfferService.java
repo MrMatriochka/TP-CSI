@@ -76,31 +76,20 @@ public class OfferService {
     }
 
     public Result createUE(String name, int ects, int cm, int td, int tp) {
-        // 1) Contexte : il faut un diplôme (et une année)
         if (currentDegree == null) return Result.err(Errors.NO_DEGREE_SELECTED);
         if (currentYear == null) return Result.err(Errors.NO_YEAR_SELECTED);
-
-        // 2) Validation du nom
         if (!NameValidator.isValidName(name)) return Result.err(Errors.INVALID_NAME);
         if (uesByName.containsKey(name)) return Result.err(Errors.UE_ALREADY_EXISTS);
-
-        // 3) Validation valeurs
         if (ects <= 0) return Result.err(Errors.ECT_OVER_0);
         if (cm < 0 || td < 0 || tp < 0) return Result.err(Errors.HOURS_OVER_0);
 
         UE ue = new UE(name, ects, cm, td, tp);
 
-        // 4) Contrainte UE : total hours <= 30
         if (ue.totalHours() > 30) return Result.err(Errors.UE_HOURS_GT_30);
-
-        // 5) Contrainte année : max 6 UE
         if (currentYear.getUes().size() >= 6) return Result.err(Errors.MAX_6_UE);
-
-        // 6) Contrainte année : ne pas dépasser 60 ECTS
         int ectsAlready = currentYear.getUes().stream().mapToInt(UE::getEcts).sum();
         if (ectsAlready + ects > 60) return Result.err(Errors.ECTS_GT_60);
 
-        // OK : enregistrer UE globale + rattacher à l’année courante
         uesByName.put(name, ue);
         currentYear.getUes().add(ue);
 
@@ -221,7 +210,7 @@ public class OfferService {
 
     private int coveragePercent(int assigned, int planned) {
         if (planned <= 0) return 0;
-        return (assigned * 100) / planned; // division entière
+        return (assigned * 100) / planned;
 
 
     }
@@ -299,27 +288,22 @@ public class OfferService {
 
         UE existing = uesByName.get(ueName);
         if (existing == null) return Result.err(Errors.UE_NOT_FOUND);
-
-        // validations
-        if (newEcts <= 0) return Result.err(Errors.ECTS_OVER_0); // à ajouter
+        if (newEcts <= 0) return Result.err(Errors.ECTS_OVER_0);
         if (newCm < 0 || newTd < 0 || newTp < 0) return Result.err(Errors.HOURS_OVER_0);
 
         int newTotal = newCm + newTd + newTp;
         if (newTotal > 30) return Result.err(Errors.UE_HOURS_GT_30);
 
-        // year constraint (60 ects)
         Year y = findYearContainingUE(ueName);
-        if (y == null) return Result.err(Errors.UE_NOT_IN_ANY_YEAR); // à ajouter
+        if (y == null) return Result.err(Errors.UE_NOT_IN_ANY_YEAR);
 
         int ectsSum = y.getUes().stream().mapToInt(UE::getEcts).sum();
         int ectsNewSum = ectsSum - existing.getEcts() + newEcts;
         if (ectsNewSum > 60) return Result.err(Errors.ECTS_GT_60);
 
-        // assignments must still fit
         int assigned = assignedHoursForUE(ueName);
-        if (assigned > newTotal) return Result.err(Errors.EDIT_BREAKS_ASSIGNMENTS); // à ajouter
+        if (assigned > newTotal) return Result.err(Errors.EDIT_BREAKS_ASSIGNMENTS);
 
-        // apply update
         existing.setEcts(newEcts);
         existing.setCmHours(newCm);
         existing.setTdHours(newTd);
@@ -338,11 +322,8 @@ public class OfferService {
 
         Year y = d.getYears().get(yearIndex - 1);
 
-        // pas 2 fois la même UE dans la même année
         boolean alreadyInYear = y.getUes().stream().anyMatch(u -> u.getName().equals(ueName));
         if (alreadyInYear) return Result.err(Errors.UE_ALREADY_EXISTS);
-
-        // contraintes année
         if (y.getUes().size() >= 6) return Result.err(Errors.MAX_6_UE);
 
         int ectsSum = y.getUes().stream().mapToInt(UE::getEcts).sum();
@@ -356,20 +337,16 @@ public class OfferService {
         UE existing = uesByName.get(ueName);
         if (existing == null) return Result.err(Errors.UE_NOT_FOUND);
 
-        // retirer des années (tous diplômes)
         for (Degree d : degreesByName.values()) {
             for (Year y : d.getYears()) {
                 y.getUes().removeIf(u -> u.getName().equals(ueName));
             }
         }
 
-        // retirer les affectations
         assignments.removeIf(a -> a.getUe().getName().equals(ueName));
 
-        // retirer de la map globale
         uesByName.remove(ueName);
 
-        // si le contexte pointait sur une année ok, rien à faire
         return Result.ok("UE deleted");
     }
 
